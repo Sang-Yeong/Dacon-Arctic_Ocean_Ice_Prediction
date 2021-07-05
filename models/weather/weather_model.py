@@ -97,9 +97,10 @@ class WeatherModel(nn.Module):
         :return: (b, t, m, n, d)
         """
         # forward encoder
+        # encoder
         _, cur_states = self.__forward_encoder(x, hidden)
 
-        # reverse the state list
+        # reverse the state list, context matcher
         cur_states = [(torch.sum(cur_states[i - 1][0], dim=1),
                        torch.sum(cur_states[i - 1][1], dim=1)) for i in range(len(cur_states), 0, -1)]
 
@@ -121,6 +122,7 @@ class WeatherModel(nn.Module):
             for t in range(seq_len):
 
                 if layer_idx == 0:
+                    # __forward_input_attn
                     x, alpha = self.__forward_input_attn(x, hidden=(h, c))
                     alphas.append(alpha)
 
@@ -158,15 +160,18 @@ class WeatherModel(nn.Module):
         return y_pre
 
     def __forward_input_attn(self, x, hidden):
+        # x.shape[2] --> [4,12,1,112,76]
         d_dim = x.shape[2]
 
         # calculate input attention
         alpha_list = []
         for k in range(d_dim):
             # dim(x_k): (b, t, m, n)
+            # x[:, :, 0] ==> [4,12,112,76] == x_k
             x_k = x[:, :, k]
 
             # dim(alpha): (b, 1, m, n)
+            # Attention의 forward 수행
             alpha = self.input_attn(x_k, hidden)
             alpha_list.append(alpha)
 

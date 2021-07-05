@@ -3,6 +3,8 @@ import torch.nn as nn
 
 
 class Attention(nn.Module):
+    # [4,12,112,76] == x_k
+
     def __init__(self, input_dim, hidden_dim, attn_channel, kernel_size):
         super(Attention, self).__init__()
         self.kernel_size = kernel_size
@@ -27,8 +29,9 @@ class Attention(nn.Module):
                            bias=False)
 
     def forward(self, input_tensor, hidden):
+        # x_k, hidden
+        # [4,12,112,76] == x_k
         """
-
         :param torch.Tensor input_tensor: (B, T, m, n)
         :param tuple of torch.Tensor hidden: ((B, hidden, M, N), (B, hidden, M, N))
         :return: attention energies, (B, 1, M, N)

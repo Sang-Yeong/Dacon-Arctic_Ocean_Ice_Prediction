@@ -17,11 +17,8 @@ class Trainer:
         self.learning_rate = learning_rate
         self.tolerance = early_stop_tolerance
         self.device = torch.device(device)
-
-        # criterion train, validation 다르게 적용
         self.criterion = nn.L1Loss()
         self.criterion_val = val_score
-
 
 
     def fit(self, model, batch_generator):
@@ -78,7 +75,7 @@ class Trainer:
 
             if tolerance > self.tolerance or epoch == self.num_epochs - 1:
                 model.load_state_dict(best_dict)
-                evaluation_val_loss = self.__step_loop(model=model,
+                evaluation_val_loss, _ = self.__step_loop(model=model,
                                                        generator=batch_generator,
                                                        mode='val',
                                                        optimizer=None)
@@ -91,12 +88,12 @@ class Trainer:
 
 
     def transform(self, model, batch_generator):
-        test_loss = self.__step_loop(model=model,
+        test_loss, predict_img = self.__step_loop(model=model,
                                      generator=batch_generator,
                                      mode='test',
                                      optimizer=None)
         print('Test finished, best eval lost: {:.5f}'.format(test_loss))
-        return test_loss
+        return test_loss, predict_img
 
 
     def __step_loop(self, model, generator, mode, optimizer):
@@ -115,14 +112,13 @@ class Trainer:
             else:
                 hidden = None
             x, y = [self.__prep_input(i) for i in [x, y]]
-            loss = step_fun(model=model,
+            loss, predict_img = step_fun(model=model,
                             inputs=[x, y, f_x.float().to(self.device), hidden],
                             optimizer=optimizer,
                             generator=generator)
             running_loss += loss
         running_loss /= (idx + 1)
-        return running_loss
-
+        return running_loss, predict_img
 
 
     def __train_step(self, model, inputs, optimizer, generator):
@@ -158,7 +154,7 @@ class Trainer:
 
         loss = self.criterion_val(pred, y)
 
-        return loss
+        return loss, pred
 
 
     def __prep_input(self, x):

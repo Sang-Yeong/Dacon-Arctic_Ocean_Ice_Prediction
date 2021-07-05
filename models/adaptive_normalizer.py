@@ -7,6 +7,9 @@ class AdaptiveNormalizer:
         self.seasonality = seasonality
         self.min_max = []
 
+        # dataset pixel 범위 조정
+
+
     def norm(self, x):
         """
         Normalizes input tensor.

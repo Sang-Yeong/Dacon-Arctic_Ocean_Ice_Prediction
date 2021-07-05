@@ -6,6 +6,7 @@ import pickle as pkl
 from trainer import Trainer
 
 
+
 def train(model_name, model, batch_generator, trainer_params, date_r, config, device):
     experiment_count = _get_exp_count(model_name)
     save_dir = os.path.join('results', model_name, 'exp_' + str(experiment_count+1))
@@ -20,7 +21,8 @@ def train(model_name, model, batch_generator, trainer_params, date_r, config, de
     train_val_loss = trainer.fit(model, batch_generator)
     test_loss = trainer.transform(model, batch_generator)
 
-    train_val_loss += (test_loss, date_r)
+    # train_val_loss += (test_loss, date_r)
+    train_val_loss += (test_loss,)
     model = model.to("cpu")
 
     for path, obj in zip([loss_save_path, model_save_path, trainer_save_path, config_save_path],
@@ -41,11 +43,13 @@ def predict(model_name, batch_generator, device, exp_num=None):
             model.decoder[i].device = device
     if model_name == "moving_avg":
         model.device = device
-        model.window_in = 10
-    trainer.device = device
-    predict_loss = trainer.transform(model, batch_generator)
+        model.window_in = 12
+    #trainer = Trainer(device=device, **trainer_params)
 
-    return predict_loss
+    trainer.device = device
+    predict_loss, predict_img = trainer.transform(model, batch_generator)
+
+    return predict_loss, predict_img
 
 
 def _find_best_model(model_name, exp_num=None):
